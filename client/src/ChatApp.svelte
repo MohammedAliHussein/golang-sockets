@@ -1,12 +1,19 @@
 <script>
 	import ChatPanel from "./components/ChatPanel.svelte";
 	import { onMount } from "svelte/internal";
+	import axios from "axios";
 
 	let ready = false;
 	let name = "";
+	let websocket = null;
+	let topSection = `top-section ${"showing"}`;
 
-	function handleConfirmName() {
-
+	async function handleConfirmName() {
+		const response = await axios.post("http://localhost:3000/join", { "Name": `${name}` });
+		if(response.status === 200) {
+			websocket = new WebSocket("ws://localhost:3000/connect");
+			topSection = `top-section ${"hidden"}`;
+		}
 	}	
 
 	onMount(() => {
@@ -17,11 +24,11 @@
 {#if ready}
 	<div class="main">
 		<h3>[type your display name]</h3>
-		<div class="top-section">
+		<div class={topSection}>
 			<input placeholder="Display Name" bind:value={name}/>
 			<button on:click|preventDefault={handleConfirmName}>Confirm</button>
 		</div>
-		<ChatPanel />
+		<ChatPanel connection={websocket} name={name}/>
 	</div>
 {/if}
 
@@ -68,4 +75,13 @@
 		background-color: rgba(255, 255, 255, 0.059);
 		/* color: black; */
 	}
+
+	.top-section {
+		transition: 0.2s ease;
+	}
+
+	.hidden {
+		opacity: 0.2;
+		pointer-events: none;
+	}	
 </style>

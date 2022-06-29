@@ -1,13 +1,21 @@
 <script>
     import { onMount } from "svelte/internal";
-    import { createEventDispatcher } from "svelte";
+
+    import moment from "moment";
+
+    export let connection = null;
+    export let name = "";
 
     let ready = false;
     let messageText = "";
-    let dispatcher = createEventDispatcher();
 
     function handleSend() {
-
+        connection.send(JSON.stringify({
+                "Sender": `${name}`,
+                "Message": `${messageText}`,
+                "Time": `${moment().format('MMMM Do YYYY, h:mm:ss a')}` 
+            })
+        );
     }
 
     onMount(() => {

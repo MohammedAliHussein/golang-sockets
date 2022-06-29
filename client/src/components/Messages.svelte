@@ -1,10 +1,18 @@
 <script>
-    import { onMount } from "svelte";
+    import { afterUpdate, onMount } from "svelte";
     import Message from "./Message.svelte";
 
     export let messages = [];
+    export let newMessage = null;
 
     let ready = false;
+
+    afterUpdate(() => {
+        if(newMessage != null) {
+            messages.unshift(newMessage);
+            messages = messages;
+        }
+    })
 
     onMount(() => {
         ready = true;
