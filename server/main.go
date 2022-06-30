@@ -40,7 +40,7 @@ func main() {
 
 	http.Handle("/", http.FileServer(http.Dir("../client/public")))
 
-	http.ListenAndServe("192.168.0.8:3000", nil)
+	http.ListenAndServe(":3000", nil)
 }
 
 func joinHandler(response http.ResponseWriter, requestt *http.Request) {
