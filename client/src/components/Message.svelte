@@ -1,9 +1,9 @@
 <script>
     import { onMount } from "svelte";
 
-    export let displayName = "Bob";
-    export let messageTime = "always";
-    export let message = "y doe?";
+    export let displayName;
+    export let messageTime;
+    export let message;
 
     let ready = false;
 

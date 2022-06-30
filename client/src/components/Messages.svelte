@@ -1,5 +1,5 @@
 <script>
-    import { afterUpdate, onMount } from "svelte";
+    import { afterUpdate, beforeUpdate, onMount } from "svelte";
     import Message from "./Message.svelte";
 
     export let messages = [];
@@ -7,12 +7,14 @@
 
     let ready = false;
 
-    afterUpdate(() => {
-        if(newMessage != null) {
+    $: handleNewMessage(newMessage);
+
+    function handleNewMessage() {
+        if (messages.length > 0) {
             messages.unshift(newMessage);
             messages = messages;
         }
-    })
+    }
 
     onMount(() => {
         ready = true;
@@ -20,7 +22,7 @@
 </script>
 
 {#if ready}
-    <div class="messages">
+    <div class="messages" on:newMessage={handleNewMessage}>
         {#each messages as message}
             <Message {...message}/> 
         {/each}

@@ -3,8 +3,6 @@
 	import { onMount } from "svelte/internal";
 	import axios from "axios";
 
-
-
 	let ready = false;
 	let name = "";
 	let websocket = null;
