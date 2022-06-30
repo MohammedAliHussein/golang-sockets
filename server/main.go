@@ -1,7 +1,6 @@
 package main
 
 import (
-	"container/list"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -27,7 +26,8 @@ var upgrader = websocket.Upgrader{
     WriteBufferSize: 1024,
 }
 
-var messages *list.List = list.New()
+// var messages *list.List = list.New()
+var messages []*Message = []*Message {}; 
 var connections map[*websocket.Conn]*websocket.Conn = make(map[*websocket.Conn]*websocket.Conn)
 var usernames map[string]string = make(map[string]string)
 
@@ -38,12 +38,14 @@ func main() {
 
 	http.HandleFunc("/connect", connectionHandler)
 
-	http.Handle("*", http.FileServer(http.Dir("../client/public")))
+	http.Handle("/", http.FileServer(http.Dir("../client/public")))
 
-	http.ListenAndServe(":3000", nil)
+	http.ListenAndServe("192.168.0.8:3000", nil)
 }
 
 func joinHandler(response http.ResponseWriter, requestt *http.Request) {
+	enableCors(&response)
+
 	if requestt.Method == http.MethodPost {
 		if body, error := ioutil.ReadAll(requestt.Body); error != nil {
 			response.WriteHeader(400)
@@ -67,15 +69,21 @@ func joinHandler(response http.ResponseWriter, requestt *http.Request) {
 			usernames[request.Name] = request.Name
 
 			response.WriteHeader(200)
+
+			// response.Write([]byte(*messages))
 		}
 	}
 }
 
 func connectionHandler(response http.ResponseWriter, request *http.Request) {
+	enableCors(&response)
+
 	if connection := upgrade(response, request); connection != nil {
 		connections[connection] = connection
 
 		defer connection.Close()
+
+		// firstIteration := false
 
 		for {
 			if messageType, data, error := connection.ReadMessage(); error != nil {
@@ -86,7 +94,9 @@ func connectionHandler(response http.ResponseWriter, request *http.Request) {
 				if error := json.Unmarshal(data, message); error != nil {
 					connection.WriteMessage(messageType, []byte(error.Error()))
 				} else {
-					messages.PushBack(message)
+					messages = append(messages, message)
+
+					// messages.PushBack(message)
 
 					for key := range connections {
 						connections[key].WriteMessage(messageType, []byte(generateJSON(message)))
@@ -94,9 +104,23 @@ func connectionHandler(response http.ResponseWriter, request *http.Request) {
 				}
 			}		
 
+			// if firstIteration {
+			// 	sendAllMessages(connection)
+			// 	firstIteration = false
+			// }
+
 			//check if client is still connected
 		}
 	}
+}
+
+func sendAllMessages(connection *websocket.Conn) {
+	// var head *list.Element = messages.Front()
+
+	// for head.Next() != nil {
+	// 	value := Message(head.Value)
+	// 	connection.WriteMessage(1, []byte(generateJSON(value)))
+	// }
 }
 
 func generateJSON(message *Message) (string) {
@@ -108,11 +132,20 @@ func generateJSON(message *Message) (string) {
 }
 
 func upgrade(response http.ResponseWriter, request *http.Request) (*websocket.Conn) {
+	upgrader.CheckOrigin = func(r *http.Request) bool {
+		return true //should check header in request against allowed origins but cbf
+	}
+
 	if conn, error := upgrader.Upgrade(response, request, nil); error != nil {
-		response.WriteHeader(426)
+		log.Println(error.Error())
 		response.Write([]byte(error.Error()))
 		return nil
 	} else {
 		return conn
 	}
+}
+
+func enableCors(response *http.ResponseWriter) {
+	(*response).Header().Set("Access-Control-Allow-Origin", "*")
+	(*response).Header().Set("Access-Control-Allow-Headers", "*")
 }

@@ -26,7 +26,7 @@
         }
     }
 
-    onMount(async () => {
+    onMount(() => {
         ready = true;
         //retreive all past messages
         //display them

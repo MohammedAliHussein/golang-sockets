@@ -3,15 +3,18 @@
 	import { onMount } from "svelte/internal";
 	import axios from "axios";
 
+	const localhost = localhost;
+	// const localNetwork = 192.168.0.8;
+
 	let ready = false;
 	let name = "";
 	let websocket = null;
 	let topSection = `top-section ${"showing"}`;
 
 	async function handleConfirmName() {
-		const response = await axios.post("http://localhost:3000/join", { "Name": `${name}` });
+		const response = await axios.post(`http://192.168.0.8:3000/join`, { "Name": `${name}` });
 		if(response.status === 200) {
-			websocket = new WebSocket("ws://localhost:3000/connect");
+			websocket = new WebSocket(`ws://192.168.0.8:3000/connect`);
 			topSection = `top-section ${"hidden"}`;
 		}
 	}	
