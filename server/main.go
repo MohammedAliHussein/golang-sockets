@@ -83,9 +83,13 @@ func connectionHandler(response http.ResponseWriter, request *http.Request) {
 
 		defer connection.Close()
 
-		// firstIteration := false
+		firstIteration := true
 
 		for {
+			if firstIteration {
+				sendAllMessages(connection)
+				firstIteration = false
+			}
 			if messageType, data, error := connection.ReadMessage(); error != nil {
 				connection.WriteMessage(messageType, []byte(error.Error()))
 			} else {
@@ -96,31 +100,33 @@ func connectionHandler(response http.ResponseWriter, request *http.Request) {
 				} else {
 					messages = append(messages, message)
 
-					// messages.PushBack(message)
-
 					for key := range connections {
 						connections[key].WriteMessage(messageType, []byte(generateJSON(message)))
 					}	
 				}
 			}		
-
-			// if firstIteration {
-			// 	sendAllMessages(connection)
-			// 	firstIteration = false
-			// }
-
 			//check if client is still connected
 		}
 	}
 }
 
 func sendAllMessages(connection *websocket.Conn) {
-	// var head *list.Element = messages.Front()
+	allMessages := messagesToJSON()
+	log.Println(allMessages)
+	connection.WriteMessage(1, []byte(allMessages))
+}
 
-	// for head.Next() != nil {
-	// 	value := Message(head.Value)
-	// 	connection.WriteMessage(1, []byte(generateJSON(value)))
-	// }
+func messagesToJSON() (string) {
+	var allMessages []string = []string{"["}
+
+	for index, message := range messages {
+		allMessages = append(allMessages, generateJSON(message))
+		log.Println(index)
+	}
+
+	result := strings.Join(allMessages, ",")
+
+	return result
 }
 
 func generateJSON(message *Message) (string) {

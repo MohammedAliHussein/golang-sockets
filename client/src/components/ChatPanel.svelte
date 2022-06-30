@@ -15,12 +15,30 @@
     $: {
         if(connection != null) {
             connection.addEventListener("message", (event) => {
-                let data = JSON.parse(event.data);
+                console.log(event.data)
 
-                newMessage = {
-                    displayName: data.sender,
-                    messageTime: data.time,
-                    message: data.message
+                if(messages.length === 0) {
+                    const pastMessages = JSON.parse("[" + (event.data) + "]");
+
+                    for (let i = 0; i < pastMessages.length; i++) {
+                        let pastMessage = {
+                            displayName: pastMessages[i].sender,
+                            messageTime: pastMessages[i].time,
+                            message: pastMessages[i].message
+                        }
+
+                        messages.unshift(pastMessage);
+                    }
+
+                    messages = messages;
+                } else {
+                    let data = JSON.parse(event.data);
+
+                    newMessage = {
+                        displayName: data.sender,
+                        messageTime: data.time,
+                        message: data.message
+                    }
                 }
             });
         }
